@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V4 Company | HealthTech Pro - Dashboard Estratégico</title>
+    
+    <!-- Bibliotecas Externas via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+
+        [x-cloak] { display: none !important; }
+
+        .v4-gradient {
+            background: linear-gradient(135deg, #09090b 0%, #18181b 100%);
+        }
+
+        .tab-active {
+            background-color: #ef4444 !important;
+            color: white !important;
+            box-shadow: 0 4px 15px -5px rgba(239, 68, 68, 0.4);
+        }
+
+        .card-shadow {
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Animação para entrada de conteúdo */
+        .fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Estilo do Funil em Cone */
+        .funnel-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .funnel-step {
+            position: relative;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 900;
+            font-size: 10px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%);
+        }
+
+        .funnel-step:hover {
+            filter: brightness(1.2);
+            transform: scale(1.02);
+        }
+
+        .funnel-step span {
+            z-index: 2;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #ef4444; }
+    </style>
+</head>
+<body x-data="{ tab: 'diagnostico' }" x-init="lucide.createIcons()" class="custom-scrollbar">
+
+    <!-- Header / Barra de Navegação -->
+    <header class="v4-gradient text-white border-b-4 border-red-600 sticky top-0 z-50 shadow-xl">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <div class="bg-white p-1 rounded shadow-inner">
+                    <img src="https://raw.githubusercontent.com/G30IA/testevvv/99f669a7d5abea42cf5c52ae92808a739806bcef/image.png" alt="V4 Logo" class="w-10 h-10 object-contain">
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black italic uppercase tracking-tighter leading-none">
+                        HealthTech <span class="text-red-600">Pro</span>
+                    </h1>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-1">Assessoria de Growth V4</p>
+                </div>
+            </div>
+
+            <!-- Menu de Navegação entre Secções -->
+            <nav class="flex bg-zinc-900 p-1 rounded-lg border border-zinc-800 overflow-x-auto max-w-full">
+                <button @click="tab = 'diagnostico'; $nextTick(() => lucide.createIcons())" 
+                        :class="tab === 'diagnostico' ? 'tab-active' : 'text-zinc-500 hover:text-zinc-300'"
+                        class="px-5 py-2 rounded text-[10px] font-black uppercase transition-all flex items-center gap-2 whitespace-nowrap">
+                    <i data-lucide="activity" class="w-3 h-3"></i> Diagnóstico
+                </button>
+                <button @click="tab = 'lean'; $nextTick(() => lucide.createIcons())" 
+                        :class="tab === 'lean' ? 'tab-active' : 'text-zinc-500 hover:text-zinc-300'"
+                        class="px-5 py-2 rounded text-[10px] font-black uppercase transition-all flex items-center gap-2 whitespace-nowrap">
+                    <i data-lucide="layers" class="w-3 h-3"></i> Lean Six Sigma
+                </button>
+                <button @click="tab = 'arima'; $nextTick(() => lucide.createIcons())" 
+                        :class="tab === 'arima' ? 'tab-active' : 'text-zinc-500 hover:text-zinc-300'"
+                        class="px-5 py-2 rounded text-[10px] font-black uppercase transition-all flex items-center gap-2 whitespace-nowrap">
+                    <i data-lucide="trending-up" class="w-3 h-3"></i> Projeção
+                </button>
+                <button @click="tab = 'plano'; $nextTick(() => lucide.createIcons())" 
+                        :class="tab === 'plano' ? 'tab-active' : 'text-zinc-500 hover:text-zinc-300'"
+                        class="px-5 py-2 rounded text-[10px] font-black uppercase transition-all flex items-center gap-2 whitespace-nowrap">
+                    <i data-lucide="clipboard-list" class="w-3 h-3"></i> Plano & IA
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
+        
+        <!-- Sidebar: Informação do Squad e Gestão -->
+        <aside class="lg:col-span-3 space-y-6">
+            <div class="bg-zinc-900 text-white p-6 border-l-4 border-red-600 card-shadow rounded-sm">
+                <h3 class="text-[10px] font-black uppercase text-zinc-500 mb-4 tracking-widest">Responsável Técnico</h3>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-zinc-800 rounded flex items-center justify-center border border-zinc-700">
+                        <i data-lucide="user-check" class="text-red-600 w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-black uppercase leading-none">Daniel Fernandes</p>
+                        <p class="text-[9px] text-zinc-400 font-bold uppercase mt-1">Account Manager</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 border border-zinc-200 card-shadow rounded-sm">
+                <p class="text-[10px] font-black uppercase text-zinc-400 mb-2">Impacto EBITDA Mensal</p>
+                <p class="text-3xl font-black text-red-600 italic tracking-tighter">- R$ 42.000</p>
+                <div class="mt-4 pt-4 border-t border-zinc-100 flex items-center gap-2">
+                    <i data-lucide="alert-triangle" class="w-3 h-3 text-red-500"></i>
+                    <p class="text-[9px] font-bold text-zinc-500 uppercase italic">Vazamento Financeiro Identificado</p>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 border border-zinc-200 card-shadow rounded-sm">
+                <h4 class="text-[10px] font-black uppercase text-zinc-900 mb-4 border-b pb-2 flex items-center gap-2">
+                    <i data-lucide="users" class="w-3 h-3"></i> Squad de Apoio
+                </h4>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-zinc-600 uppercase">Gestor de Tráfego</span>
+                        <span class="text-[10px] font-black text-zinc-400">Ana Oliveira</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-zinc-600 uppercase">Copywriter</span>
+                        <span class="text-[10px] font-black text-zinc-400">Lucas Mendes</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Conteúdo das Abas -->
+        <section class="lg:col-span-9">
+            
+            <!-- ABA: DIAGNÓSTICO E ESTRATÉGIA -->
+            <div x-show="tab === 'diagnostico'" class="fade-in space-y-6">
+                
+                <!-- Funil de Vendas Visual (Cone) -->
+                <div class="bg-white p-8 border border-zinc-200 card-shadow rounded-sm mb-6">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h3 class="text-xs font-black uppercase flex items-center gap-2">
+                                <i data-lucide="filter" class="w-4 h-4 text-red-600"></i> Funil de Conversão Atual (Cenário de Crise)
+                            </h3>
+                            <p class="text-[9px] font-bold text-zinc-400 uppercase mt-1">Análise de eficiência por etapa do funil de vendas</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] font-black text-red-600 bg-red-50 px-2 py-1 rounded">Taxa de Conversão Final: 1.2%</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                        <!-- Representação Gráfica do Funil -->
+                        <div class="funnel-container">
+                            <div class="funnel-step bg-zinc-800" style="width: 100%;">
+                                <span>Tráfego / Impressões (100%)</span>
+                            </div>
+                            <div class="funnel-step bg-zinc-700" style="width: 80%;">
+                                <span>Visitas Qualificadas (35%)</span>
+                            </div>
+                            <div class="funnel-step bg-red-800" style="width: 60%;">
+                                <span>Leads Gerados - MQL (12%)</span>
+                            </div>
+                            <div class="funnel-step bg-red-600 shadow-lg shadow-red-500/20" style="width: 40%;">
+                                <span>Oportunidades - SQL (4%)</span>
+                            </div>
+                            <div class="funnel-step bg-red-500" style="clip-path: polygon(25% 0%, 75% 0%, 50% 100%, 50% 100%); width: 20%; height: 60px;">
+                                <span class="pt-2">Vendas (1.2%)</span>
+                            </div>
+                        </div>
+
+                        <!-- Métricas de Conversão Lateral -->
+                        <div class="space-y-4">
+                            <div class="p-3 bg-zinc-50 border-l-4 border-zinc-300">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-[9px] font-black text-zinc-500 uppercase">Atração -> Lead</span>
+                                    <span class="text-[10px] font-black text-red-600">Baixa Eficiência</span>
+                                </div>
+                                <p class="text-[11px] font-bold text-zinc-700 leading-tight italic">
+                                    "Apenas 12% do tráfego converte em lead devido ao desajuste da oferta no anúncio."
+                                </p>
+                            </div>
+                            <div class="p-3 bg-red-50 border-l-4 border-red-600">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-[9px] font-black text-red-600 uppercase">Qualificação -> Venda</span>
+                                    <span class="text-[10px] font-black text-red-700">Gargalo Crítico</span>
+                                </div>
+                                <p class="text-[11px] font-bold text-zinc-700 leading-tight italic">
+                                    "Taxa de Churn de 33% em Oportunidades por falta de fit (ICP errado)."
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- As-Is -->
+                    <div class="bg-white p-8 border-t-4 border-zinc-300 card-shadow relative overflow-hidden">
+                        <i data-lucide="trending-down" class="absolute -right-4 -top-4 w-24 h-24 text-zinc-50 opacity-10"></i>
+                        <h3 class="text-zinc-900 font-black text-xs uppercase tracking-widest mb-6 border-b pb-2">Cenário Atual (As-Is)</h3>
+                        <ul class="space-y-4 relative z-10">
+                            <li class="flex items-start gap-3 p-3 bg-zinc-50 border-l-2 border-red-500 hover:bg-zinc-100 transition-colors">
+                                <span class="text-sm font-bold text-zinc-700">CAC 3x acima do benchmark ideal do setor hospitalar.</span>
+                            </li>
+                            <li class="flex items-start gap-3 p-3 bg-zinc-50 border-l-2 border-red-500 hover:bg-zinc-100 transition-colors">
+                                <span class="text-sm font-bold text-zinc-700">Taxa de Churn em 33% por leads sem perfil de compra (ICP).</span>
+                            </li>
+                            <li class="flex items-start gap-3 p-3 bg-zinc-50 border-l-2 border-red-500 hover:bg-zinc-100 transition-colors">
+                                <span class="text-sm font-bold text-zinc-700">Lead Time de fecho elevado devido a processos manuais.</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- To-Be -->
+                    <div class="bg-zinc-900 text-white p-8 border-t-4 border-red-600 card-shadow relative overflow-hidden">
+                        <i data-lucide="rocket" class="absolute -right-4 -top-4 w-24 h-24 text-zinc-800 opacity-20"></i>
+                        <h3 class="text-red-500 font-black text-xs uppercase tracking-widest mb-6 border-b border-zinc-800 pb-2">Solução V4 (To-Be)</h3>
+                        <ul class="space-y-4 relative z-10">
+                            <li class="flex items-start gap-3 p-3 bg-zinc-800 border-l-2 border-emerald-500 hover:bg-zinc-800/80 transition-colors">
+                                <span class="text-sm font-bold text-zinc-100">Implementação de Filtro de ICP Dinâmico e CRM Lean.</span>
+                            </li>
+                            <li class="flex items-start gap-3 p-3 bg-zinc-800 border-l-2 border-emerald-500 hover:bg-zinc-800/80 transition-colors">
+                                <span class="text-sm font-bold text-zinc-100">Setup de Atribuição Avançada para ROI por Canal.</span>
+                            </li>
+                            <li class="flex items-start gap-3 p-3 bg-zinc-800 border-l-2 border-emerald-500 hover:bg-zinc-800/80 transition-colors">
+                                <span class="text-sm font-bold text-zinc-100">Automação de Nutrição para acelerar o ciclo de vendas.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABA: LEAN SIX SIGMA E ANÁLISE -->
+            <div x-show="tab === 'lean'" class="fade-in space-y-6">
+                <!-- Matriz SWOT -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-emerald-50 border border-emerald-100 p-5 rounded shadow-sm">
+                        <h4 class="text-[10px] font-black text-emerald-700 uppercase mb-2">Forças (S)</h4>
+                        <p class="text-[11px] font-bold text-emerald-900/80 italic leading-snug">Dados proprietários de 2k+ hospitais e alta autoridade técnica.</p>
+                    </div>
+                    <div class="bg-red-50 border border-red-100 p-5 rounded shadow-sm">
+                        <h4 class="text-[10px] font-black text-red-700 uppercase mb-2">Fraquezas (W)</h4>
+                        <p class="text-[11px] font-bold text-red-900/80 italic leading-snug">CAC elevado canibalizando a margem de lucro operacional.</p>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-100 p-5 rounded shadow-sm">
+                        <h4 class="text-[10px] font-black text-blue-700 uppercase mb-2">Oportunidades (O)</h4>
+                        <p class="text-[11px] font-bold text-blue-900/80 italic leading-snug">Expansão de cross-sell em serviços de auditoria e B2G.</p>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-100 p-5 rounded shadow-sm">
+                        <h4 class="text-[10px] font-black text-amber-700 uppercase mb-2">Ameaças (T)</h4>
+                        <p class="text-[11px] font-bold text-amber-900/80 italic leading-snug">Consolidação de concorrentes SaaS e novas leis de dados.</p>
+                    </div>
+                </div>
+
+                <!-- Causa Raiz - Ishikawa -->
+                <div class="bg-white p-8 border border-zinc-200 card-shadow rounded-sm">
+                    <div class="flex items-center justify-between mb-8">
+                        <h3 class="text-xs font-black uppercase flex items-center gap-2">
+                            <i data-lucide="search" class="w-4 h-4 text-red-600"></i> Análise de Causa Raiz (Ishikawa DMAIC)
+                        </h3>
+                        <span class="px-3 py-1 bg-red-600 text-white text-[9px] font-black uppercase italic rounded-full shadow-lg shadow-red-500/30 animate-pulse">Crítico</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="relative pl-6 border-l border-zinc-100">
+                            <div class="absolute left-0 top-0 w-1 h-full bg-red-100"></div>
+                            <span class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Medição</span>
+                            <p class="text-xs font-bold text-zinc-600 mt-2 leading-relaxed">Foco em métricas de vaidade (cliques) em vez de Custo por Venda Líquida.</p>
+                        </div>
+                        <div class="relative pl-6 border-l border-zinc-100">
+                            <div class="absolute left-0 top-0 w-1 h-full bg-red-100"></div>
+                            <span class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Método</span>
+                            <p class="text-xs font-bold text-zinc-600 mt-2 leading-relaxed">Falta de segmentação no CRM entre clínicas pequenas e grandes redes.</p>
+                        </div>
+                        <div class="relative pl-6 border-l border-zinc-100">
+                            <div class="absolute left-0 top-0 w-1 h-full bg-red-600"></div>
+                            <span class="text-[10px] font-black text-zinc-400 uppercase tracking-widest text-red-600">Impacto Direto</span>
+                            <p class="text-lg font-black text-red-600 mt-1 italic tracking-tighter">- R$ 42k / Mês</p>
+                            <p class="text-[10px] font-bold text-zinc-400 uppercase mt-1">Vazamento Financeiro</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABA: PROJEÇÃO E GRÁFICOS -->
+            <div x-show="tab === 'arima'" class="fade-in space-y-6">
+                <div class="bg-white p-8 border border-zinc-200 card-shadow rounded-sm h-[520px]">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+                        <div>
+                            <h3 class="text-xl font-black italic uppercase tracking-tight">Projeção de Faturamento (Modelo ARIMA)</h3>
+                            <p class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Previsão Estocástica baseada em Execução V4 vs Histórico</p>
+                        </div>
+                        <div class="flex gap-6 text-[9px] font-black uppercase italic border border-zinc-100 p-2 bg-zinc-50 rounded">
+                            <div class="flex items-center gap-2 text-zinc-400">
+                                <span class="w-4 h-1 bg-zinc-300 rounded-sm"></span> Realizado
+                            </div>
+                            <div class="flex items-center gap-2 text-red-600">
+                                <span class="w-4 h-1 bg-red-600 rounded-sm"></span> Alvo V4 (ARIMA)
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Área do Gráfico -->
+                    <div class="h-full max-h-[380px] w-full">
+                        <canvas id="arimaChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABA: PLANO DE EXPANSÃO & IA -->
+            <div x-show="tab === 'plano'" class="fade-in space-y-6">
+                <!-- A. Revenue Architecture -->
+                <div class="bg-white p-8 border-l-4 border-red-600 card-shadow rounded-sm">
+                    <h3 class="text-zinc-900 font-black text-xs uppercase tracking-widest mb-6 flex items-center gap-2">
+                        <i data-lucide="map" class="w-4 h-4 text-red-600"></i> Plano de Recuperação (Backlog)
+                    </h3>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-zinc-50 p-4 border border-zinc-100">
+                            <p class="text-[10px] font-black text-red-600 uppercase mb-1">1. Erro Crítico Identificado</p>
+                            <p class="text-xs font-bold text-zinc-700 leading-relaxed">
+                                O erro reside no <span class="text-red-600">Desalinhamento de ICP no Topo do Funil</span>. O churn de 33% e o CAC elevado provam que a mídia está atraindo volume, mas não valor. Estamos pagando por leads de "clínicas" enquanto o produto é desenhado para "Hospitais de Médio Porte".
+                            </p>
+                        </div>
+
+                        <div>
+                            <p class="text-[10px] font-black text-zinc-900 uppercase mb-3">2. Ações Práticas de Growth Marketing</p>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="p-3 border-l-2 border-zinc-200 bg-white">
+                                    <span class="text-[9px] font-black text-zinc-400 uppercase">Topo (Atração)</span>
+                                    <p class="text-[11px] font-bold mt-1 text-zinc-600">Whitelist de Domínios (.gov / .hospital) em campanhas de Programática e LinkedIn Ads.</p>
+                                </div>
+                                <div class="p-3 border-l-2 border-zinc-200 bg-white">
+                                    <span class="text-[9px] font-black text-zinc-400 uppercase">Meio (Qualificação)</span>
+                                    <p class="text-[11px] font-bold mt-1 text-zinc-600">Lead Magnet de "Auto-Diagnóstico de ROI Hospitalar" que exige o CNPJ para entrega do relatório.</p>
+                                </div>
+                                <div class="p-3 border-l-2 border-zinc-200 bg-white">
+                                    <span class="text-[9px] font-black text-zinc-400 uppercase">Fundo (Vendas)</span>
+                                    <p class="text-[11px] font-bold mt-1 text-zinc-600">Revisão do SLA: Vendas só atende leads com Score > 80 (Baseado em cargo C-Level e verba).</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-zinc-900 text-white p-4">
+                            <p class="text-[10px] font-black text-red-500 uppercase mb-2">3. Novo Ritual QBR (CEO)</p>
+                            <ul class="text-[11px] font-bold space-y-2 text-zinc-300">
+                                <li class="flex gap-2"><i data-lucide="check-circle" class="w-3 h-3 text-red-500"></i> Dash de Eficiência Operacional (ROI/LTV) em vez de Cliques/CTR.</li>
+                                <li class="flex gap-2"><i data-lucide="check-circle" class="w-3 h-3 text-red-500"></i> Pauta: "Como recuperaremos os R$ 42k mensais?" em vez de "Status de Campanha".</li>
+                                <li class="flex gap-2"><i data-lucide="check-circle" class="w-3 h-3 text-red-500"></i> Frequência Mensal focado em Roadmap Estratégico de 90 dias.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- B. Eficiência com IA -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 border border-zinc-200 card-shadow">
+                        <h4 class="text-[10px] font-black text-zinc-900 uppercase mb-4 flex items-center gap-2">
+                            <i data-lucide="cpu" class="w-4 h-4 text-red-600"></i> IA na Segmentação
+                        </h4>
+                        <p class="text-xs font-bold text-zinc-600 leading-relaxed mb-4">
+                            Usaremos LLMs para <span class="text-red-600">Sentiment Analysis</span> nas notas do CRM. A IA processará os feedbacks de "Lead Desqualificado" para identificar padrões semânticos (ex: objeção de preço x falta de autoridade) e ajustará automaticamente as exclusões de palavras-chave negativas no Google Ads.
+                        </p>
+                    </div>
+                    <div class="bg-zinc-900 p-6 text-white card-shadow">
+                        <h4 class="text-[10px] font-black text-red-500 uppercase mb-4 flex items-center gap-2">
+                            <i data-lucide="message-square" class="w-4 h-4"></i> Prompt Estratégico (Sales Script)
+                        </h4>
+                        <div class="bg-zinc-800 p-3 rounded text-[10px] font-mono text-zinc-400 border border-zinc-700">
+                            "Atue como consultor sênior de vendas B2B. Gere um roteiro de abordagem fria (Cold Call) para CEOs de hospitais focado em 'Recuperação de Margem EBITDA'. Use o framework PAS (Problem-Agitate-Solution). O tom deve ser de autoridade técnica, não comercial. Foque na dor do vazamento financeiro de R$ 42k/mês."
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Rodapé de Auditoria -->
+    <footer class="fixed bottom-0 left-0 right-0 bg-zinc-950 text-zinc-600 py-3 px-8 text-[9px] font-black uppercase tracking-widest flex justify-between items-center border-t border-zinc-900 z-50">
+        <div class="flex items-center gap-4">
+            <span class="flex items-center gap-1"><i data-lucide="shield-check" class="w-3 h-3 text-red-600"></i> Auditoria de Growth</span>
+            <span class="text-zinc-800">|</span>
+            <span class="text-zinc-200 italic font-black">Cientista de Marketing: Daniel Fernandes</span>
+        </div>
+        <div class="hidden md:flex items-center gap-2">
+            HealthTech Pro &copy; 2024 · Marketing Baseado em Dados · 
+            <span class="text-red-900">Protocolo DMAIC</span>
+        </div>
+    </footer>
+
+    <!-- Scripts de Funcionalidade -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicialização do Gráfico ARIMA
+            const canvasElement = document.getElementById('arimaChart');
+            if(canvasElement) {
+                const ctx = canvasElement.getContext('2d');
+                
+                const gradientStroke = ctx.createLinearGradient(0, 0, 0, 400);
+                gradientStroke.addColorStop(0, 'rgba(239, 68, 68, 0.2)');
+                gradientStroke.addColorStop(1, 'rgba(239, 68, 68, 0)');
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul'],
+                        datasets: [
+                            {
+                                label: 'Faturamento Realizado',
+                                data: [400, 420, 380, null, null, null, null],
+                                borderColor: '#d4d4d8',
+                                backgroundColor: 'transparent',
+                                borderWidth: 5,
+                                tension: 0.4,
+                                pointRadius: 0,
+                                spanGaps: true
+                            },
+                            {
+                                label: 'Projeção ARIMA (Meta V4)',
+                                data: [null, null, 380, 470, 560, 710, 840],
+                                borderColor: '#ef4444',
+                                backgroundColor: gradientStroke,
+                                borderWidth: 5,
+                                borderDash: [10, 5],
+                                tension: 0.4,
+                                fill: true,
+                                pointBackgroundColor: '#ef4444',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 3,
+                                pointRadius: 6,
+                                pointHoverRadius: 8,
+                                spanGaps: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: '#000',
+                                titleFont: { family: 'Inter', weight: 'black', size: 10 },
+                                bodyFont: { family: 'Inter', weight: 'bold', size: 12 },
+                                padding: 12,
+                                cornerRadius: 4,
+                                displayColors: false,
+                                callbacks: {
+                                    label: (context) => ` R$ ${context.raw}k`
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: '#f1f5f9', drawBorder: false },
+                                ticks: { 
+                                    color: '#94a3b8', 
+                                    font: { weight: 'bold', size: 10 },
+                                    callback: (v) => 'R$ ' + v + 'k'
+                                }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#94a3b8', font: { weight: 'bold', size: 10 } }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
